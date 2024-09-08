@@ -51,7 +51,7 @@ jobs:
 
     - name: Build
       run: |
-        GOOS=${{ matrix.os }} GOARCH=amd64 go build -o myapp-${{ matrix.os }}-amd64${{ matrix.exe }}
+        GOOS=${{ matrix.os }} GOARCH=amd64 go build -o wsstester-${{ matrix.os }}-amd64${{ matrix.exe }}
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
@@ -59,6 +59,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./myapp-${{ matrix.os }}-amd64${{ matrix.exe }}
-        asset_name: myapp-${{ matrix.os }}-amd64${{ matrix.exe }}
+        asset_path: ./wsstester-${{ matrix.os }}-amd64${{ matrix.exe }}
+        asset_name: wsstester-${{ matrix.os }}-amd64${{ matrix.exe }}
         asset_content_type: application/octet-stream

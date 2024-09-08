@@ -21,7 +21,15 @@ func main() {
 		log.Fatal("Please provide a WebSocket server URL")
 	}
 
-	u, err := url.Parse(*serverURL)
+	success, fail := runConnectionTest(*serverURL, *numClients, *numConnections)
+
+	fmt.Printf("Results:\n")
+	fmt.Printf("Successful connections: %d\n", success)
+	fmt.Printf("Failed connections: %d\n", fail)
+}
+
+func runConnectionTest(serverURL string, numClients, numConnections int) (uint32, uint32) {
+	u, err := url.Parse(serverURL)
 	if err != nil {
 		log.Fatal("Invalid URL:", err)
 	}
@@ -32,13 +40,13 @@ func main() {
 		wg           sync.WaitGroup
 	)
 
-	fmt.Printf("Dialing: %s with %d clients, each making %d connections\n", u.String(), *numClients, *numConnections)
+	fmt.Printf("Dialing: %s with %d clients, each making %d connections\n", u.String(), numClients, numConnections)
 
-	for client := 0; client < *numClients; client++ {
+	for client := 0; client < numClients; client++ {
 		wg.Add(1)
 		go func(clientID int) {
 			defer wg.Done()
-			for i := 0; i < *numConnections; i++ {
+			for i := 0; i < numConnections; i++ {
 				c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 				if err != nil {
 					atomic.AddUint32(&failCount, 1)
@@ -52,7 +60,5 @@ func main() {
 
 	wg.Wait()
 
-	fmt.Printf("Results:\n")
-	fmt.Printf("Successful connections: %d\n", successCount)
-	fmt.Printf("Failed connections: %d\n", failCount)
+	return successCount, failCount
 }

@@ -8,6 +8,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [created]
 
 jobs:
 
@@ -26,3 +28,40 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+  release:
+    needs: build
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Build
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o myapp-linux-amd64
+        GOOS=windows GOARCH=amd64 go build -o myapp-windows-amd64.exe
+        GOOS=darwin GOARCH=amd64 go build -o myapp-darwin-amd64
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./myapp-${{ matrix.os }}-amd64${{ matrix.exe }}
+        asset_name: myapp-${{ matrix.os }}-amd64${{ matrix.exe }}
+        asset_content_type: application/octet-stream
+      strategy:
+        matrix:
+          include:
+            - os: linux
+              exe: ''
+            - os: windows
+              exe: '.exe'
+            - os: darwin
+              exe: ''

@@ -13,7 +13,8 @@ import (
 
 func main() {
 	serverURL := flag.String("u", "", "WebSocket server URL (wss://)")
-	numConnections := flag.Int("c", 1, "Number of connections to make")
+	numConnections := flag.Int("c", 1, "Number of connections per client")
+	numClients := flag.Int("n", 1, "Number of clients")
 	flag.Parse()
 
 	if *serverURL == "" {
@@ -31,19 +32,22 @@ func main() {
 		wg           sync.WaitGroup
 	)
 
-	fmt.Println("Dialing: ", u.String())
-	for i := 0; i < *numConnections; i++ {
+	fmt.Printf("Dialing: %s with %d clients, each making %d connections\n", u.String(), *numClients, *numConnections)
+
+	for client := 0; client < *numClients; client++ {
 		wg.Add(1)
-		go func() {
+		go func(clientID int) {
 			defer wg.Done()
-			c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-			if err != nil {
-				atomic.AddUint32(&failCount, 1)
-				return
+			for i := 0; i < *numConnections; i++ {
+				c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+				if err != nil {
+					atomic.AddUint32(&failCount, 1)
+					continue
+				}
+				defer c.Close()
+				atomic.AddUint32(&successCount, 1)
 			}
-			defer c.Close()
-			atomic.AddUint32(&successCount, 1)
-		}()
+		}(client)
 	}
 
 	wg.Wait()

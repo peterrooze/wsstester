@@ -25,8 +25,8 @@ This Go program allows you to test multiple WebSocket connections from multiple 
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/websocket-connection-tester.git
-   cd websocket-connection-tester
+   git clone https://github.com/peterrooze/wsstester.git
+   cd wsstester
    ```
 
 2. Install the required dependency:
